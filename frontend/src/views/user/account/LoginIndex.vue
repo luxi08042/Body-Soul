@@ -34,8 +34,6 @@ async function handleLogin() {
         errorMessage.value = data.result
       }
     } catch (err) {
-      console.log(err)
-      errorMessage.value = '网络错误，请稍后重试'
     }
   }
 }
