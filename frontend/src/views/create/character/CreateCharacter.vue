@@ -32,7 +32,6 @@ const errorMessage = ref('')
 //       curVoiceId.value = data.voices[0].id
 //     }
 //   } catch (err) {
-//     console.error(err)
 //   }
 // })
 
@@ -76,7 +75,6 @@ async function handleCreate() {
         errorMessage.value = data.result
       }
     } catch (err) {
-      console.error(err)
     }
   }
 }
