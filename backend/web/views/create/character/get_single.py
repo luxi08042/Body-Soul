@@ -12,13 +12,13 @@ class GetSingleCharacterView(APIView):
             character_id = request.query_params.get('character_id')
             character = Character.objects.get(id=character_id, author__user=request.user)
 
-            voices_raw = Voice.objects.order_by('id')
-            voices = []
-            for v in voices_raw:
-                voices.append({
-                    'id': v.id,
-                    'name': v.name,
-                })
+            # voices_raw = Voice.objects.order_by('id')
+            # voices = []
+            # for v in voices_raw:
+            #     voices.append({
+            #         'id': v.id,
+            #         'name': v.name,
+            #     })
 
             return Response({
                 'result': 'success',
@@ -30,7 +30,7 @@ class GetSingleCharacterView(APIView):
                     'background_image': character.background_image.url,
                     'voice_id': character.voice.id,
                 },
-                'voices': voices,
+                # 'voices': voices,
             })
         except:
             return Response({

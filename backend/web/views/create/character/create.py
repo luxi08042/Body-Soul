@@ -13,7 +13,7 @@ class CreateCharacterView(APIView):
             user = request.user
             user_profile = UserProfile.objects.get(user=user)
             name = request.data.get('name').strip()
-            voice_id = request.data.get('voice_id')
+            # voice_id = request.data.get('voice_id')
             profile = request.data.get('profile').strip()[:100000]
             photo = request.FILES.get('photo', None)
             background_image = request.FILES.get('background_image', None)
@@ -35,12 +35,12 @@ class CreateCharacterView(APIView):
                     'result': '聊天背景不能为空'
                 })
 
-            voice = Voice.objects.get(id=voice_id)
+            # voice = Voice.objects.get(id=voice_id)
 
             Character.objects.create(
                 author=user_profile,
                 name=name,
-                voice=voice,
+                # voice=voice,
                 profile=profile,
                 photo=photo,
                 background_image=background_image,
