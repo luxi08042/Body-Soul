@@ -4,7 +4,7 @@ import {useUserStore} from "@/stores/user.js";
 import UpdateIcon from "@/components/character/icons/UpdateIcon.vue";
 import RemoveIcon from "@/components/character/icons/RemoveIcon.vue";
 import api from "@/js/http/api.js";
-// import ChatField from "@/components/character/chat_field/ChatField.vue";
+import ChatField from "@/components/character/chat_field/ChatField.vue";
 import {useRouter} from "vue-router";
 
 const props = defineProps(['character', 'canEdit', 'canRemoveFriend', 'friendId'])
@@ -104,7 +104,7 @@ async function openChatField() {
       </div>
       <div class="text-sm line-clamp-1 break-all">{{ character.author.username }}</div>
     </RouterLink>
-<!--    <ChatField ref="chat-field-ref" :friend="friend" />-->
+    <ChatField ref="chat-field-ref" :friend="friend" />
   </div>
 </template>
 
