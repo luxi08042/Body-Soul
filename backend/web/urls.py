@@ -14,10 +14,8 @@ urlpatterns = [
     path('api/user/account/refresh_token/', RefreshTokenView.as_view()),
     path('api/user/account/get_user_info/',GetUserInfoView.as_view()),
 
-    re_path(r'^(?!media/|static/|assets/).*$', index),
-
     path('', index),
 
-
+    re_path(r'^(?!media/|static/|assets/).*$', index),
 ]
 
