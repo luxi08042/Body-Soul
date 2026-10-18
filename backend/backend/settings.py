@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-j6tt1_pel@3_6u(5sx_-+l#@tu3ubnz)!e_%rob$-fofhyq49i
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'app7492.acapp.acwing.com.cn']
+ALLOWED_HOSTS = ['127.0.0.1', 'app8145.acapp.acwing.com.cn']
 
 
 # Application definition
@@ -134,7 +134,7 @@ else:
 if DEBUG:
     MEDIA_URL = 'http://127.0.0.1:8000/media/'
 else:
-    MEDIA_URL = 'https://app7492.acapp.acwing.com.cn/media/'
+    MEDIA_URL = 'https://app8145.acapp.acwing.com.cn/media/'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 

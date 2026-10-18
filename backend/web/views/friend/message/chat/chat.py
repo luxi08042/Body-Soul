@@ -1,8 +1,12 @@
 import asyncio
+import base64
 import json
+import os
 import threading
+import uuid
 from queue import Queue
 
+import websockets
 from django.http import StreamingHttpResponse
 from langchain_core.messages import HumanMessage, BaseMessageChunk, SystemMessage, AIMessage
 from rest_framework.renderers import BaseRenderer
@@ -13,7 +17,6 @@ from rest_framework.permissions import IsAuthenticated
 from web.models.friend import Friend, Message, SystemPrompt
 from web.views.friend.message.chat.graph import ChatGraph
 from web.views.friend.message.memory.update import update_memory
-
 
 
 class SSERenderer(BaseRenderer):
@@ -78,30 +81,100 @@ class MessageChatView(APIView):
         return response
 
 
-    async def chat_sender(self, app, inputs, mq):
-        """纯文本模式：只跑 LLM 流式输出，不做 TTS。"""
+    async def tts_sender(self, app, inputs, mq, ws, task_id):
         async for msg, metadata in app.astream(inputs, stream_mode="messages"):
             if isinstance(msg, BaseMessageChunk):
                 if msg.content:
+                    await ws.send(json.dumps({
+                        "header": {
+                            "action": "continue-task",
+                            "task_id": task_id,  # 随机uuid
+                            "streaming": "duplex"
+                        },
+                        "payload": {
+                            "input": {
+                                "text": msg.content,
+                            }
+                        }
+                    }))
                     mq.put_nowait({'content': msg.content})
                 if hasattr(msg, 'usage_metadata') and msg.usage_metadata:
                     mq.put_nowait({'usage': msg.usage_metadata})
+        await ws.send(json.dumps({
+            "header": {
+                "action": "finish-task",
+                "task_id": task_id,
+                "streaming": "duplex"
+            },
+            "payload": {
+                "input": {}  # input不能省去，否则会报错
+            }
+        }))
 
 
-    async def run_chat_task(self, app, inputs, mq):
-        await self.chat_sender(app, inputs, mq)
+    async def tts_receiver(self, mq, ws):
+        async for msg in ws:
+            if isinstance(msg, bytes):
+                audio = base64.b64encode(msg).decode('utf-8')
+                mq.put_nowait({'audio': audio})
+            else:
+                data = json.loads(msg)
+                event = data['header']['event']
+                if event in ['task-finished', 'task-failed']:
+                    break
 
 
-    def work(self, app, inputs, mq):
+    async def run_tts_tasks(self, app, inputs, mq, voice_id):
+        task_id = uuid.uuid4().hex
+        api_key = os.getenv('API_KEY')
+        wss_url = os.getenv('WSS_URL')
+        headers = {
+            "Authorization": f"Bearer {api_key}"
+        }
+        async with websockets.connect(wss_url, additional_headers=headers) as ws:
+            await ws.send(json.dumps({
+                "header": {
+                    "action": "run-task",
+                    "task_id": task_id,  # 随机uuid
+                    "streaming": "duplex"
+                },
+                "payload": {
+                    "task_group": "audio",
+                    "task": "tts",
+                    "function": "SpeechSynthesizer",
+                    "model": "cosyvoice-v3-flash",
+                    "parameters": {
+                        "text_type": "PlainText",
+                        "voice": voice_id,  # 音色
+                        "format": "mp3",  # 音频格式
+                        "sample_rate": 22050,  # 采样率
+                        "volume": 50,  # 音量
+                        "rate": 1.25,  # 语速
+                        "pitch": 1  # 音调
+                    },
+                    "input": {  # input不能省去，不然会报错
+                    }
+                }
+            }))
+            async for msg in ws:
+                if json.loads(msg)['header']['event'] == 'task-started':
+                    break
+            await asyncio.gather(
+                self.tts_sender(app, inputs, mq, ws, task_id),
+                self.tts_receiver(mq, ws),
+            )
+
+
+    def work(self, app, inputs, mq, voice_id):
         try:
-            asyncio.run(self.run_chat_task(app, inputs, mq))
+            asyncio.run(self.run_tts_tasks(app, inputs, mq, voice_id))
         finally:
             mq.put_nowait(None)
 
 
     def event_stream(self, app, inputs, friend, message):
         mq = Queue()
-        thread = threading.Thread(target=self.work, args=(app, inputs, mq))
+        thread = threading.Thread(target=self.work, args=(app, inputs, mq, friend.character.voice.voice_id))
         thread.start()
 
         full_output = ''
@@ -136,3 +209,4 @@ class MessageChatView(APIView):
         )
         if Message.objects.filter(friend=friend).count() % 1 == 0:
             update_memory(friend)
+
