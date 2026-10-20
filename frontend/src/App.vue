@@ -1,6 +1,6 @@
 <script setup>
 import NavBar from "@/components/navbar/NavBar.vue";
-import {onMounted} from "vue";
+import {onErrorCaptured, onMounted, ref} from "vue";
 import {useUserStore} from "@/stores/user.js";
 import api from "@/js/http/api.js";
 import {useRoute, useRouter} from "vue-router";
@@ -8,6 +8,14 @@ import {useRoute, useRouter} from "vue-router";
 const user = useUserStore()
 const route = useRoute()
 const router = useRouter()
+const pageError = ref('')
+
+// 捕获子组件渲染错误，避免整页白屏看不到原因
+onErrorCaptured((err) => {
+  console.error('[页面渲染出错]', err)
+  pageError.value = err?.message || String(err)
+  return false
+})
 
 onMounted(async () => {
   try {
@@ -30,9 +38,15 @@ onMounted(async () => {
 </script>
 
 <template>
-  <NavBar>
-    <RouterView />
-  </NavBar>
+  <div>
+    <div v-if="pageError" class="alert alert-error m-4 text-sm">
+      页面出错：{{ pageError }}
+      <button class="btn btn-xs" @click="pageError = ''">关闭</button>
+    </div>
+    <NavBar>
+      <RouterView />
+    </NavBar>
+  </div>
 </template>
 
 <style scoped>

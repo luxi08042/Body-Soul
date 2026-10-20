@@ -9,6 +9,11 @@ import SpaceIndex from "@/views/user/space/SpaceIndex.vue";
 import ProfileIndex from "@/views/user/profile/ProfileIndex.vue";
 import {useUserStore} from "@/stores/user.js";
 import UpdateCharacter from "@/views/create/character/UpdateCharacter.vue";
+import BlogList from "@/views/blog/BlogList.vue";
+import BlogDetailPage from "@/views/blog/BlogDetailPage.vue";
+import BlogCreate from "@/views/blog/BlogCreate.vue";
+import MultiAgentChat from "@/views/multiagent/MultiAgentChat.vue";
+import MultiAgentIndex from "@/views/multiagent/MultiAgentIndex.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -81,6 +86,46 @@ const router = createRouter({
       path: '/user/profile/',
       component: ProfileIndex,
       name: 'user-profile-index',
+      meta: {
+        needLogin: true,
+      },
+    },
+    {
+      path: '/blog/',
+      component: BlogList,
+      name: 'blog-list',
+      meta: {
+        needLogin: false,
+      },
+    },
+    {
+      path: '/blog/create/',
+      component: BlogCreate,
+      name: 'blog-create',
+      meta: {
+        needLogin: true,
+      },
+    },
+    {
+      path: '/blog/detail/:blog_id/',
+      component: BlogDetailPage,
+      name: 'blog-detail',
+      meta: {
+        needLogin: false,
+      },
+    },
+    {
+      path: '/multiagent/',
+      component: MultiAgentIndex,
+      name: 'multi-agent-index',
+      meta: {
+        needLogin: true,
+      },
+    },
+    {
+      path: '/multiagent/:room_id/',
+      component: MultiAgentChat,
+      name: 'multi-agent-room',
       meta: {
         needLogin: true,
       },

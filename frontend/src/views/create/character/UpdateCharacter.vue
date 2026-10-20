@@ -9,6 +9,7 @@ import api from "@/js/http/api.js";
 import {useRoute, useRouter} from "vue-router";
 import {useUserStore} from "@/stores/user.js";
 import Voice from "@/views/create/character/components/Voice.vue";
+import {fetchVoices} from "@/js/api/character.js";
 
 const user = useUserStore()
 const router = useRouter()
@@ -18,6 +19,28 @@ const character = ref(null)
 
 const voices = ref([])
 const curVoiceId = ref(null)
+
+/** 仅刷新音色列表（删除音色后调用），保留当前角色的其他数据 */
+async function reloadVoices(keepEmpty = false) {
+  voices.value = await fetchVoices()
+  if (keepEmpty) {
+    curVoiceId.value = null
+  } else if (!voices.value.find(v => String(v.id) === String(curVoiceId.value))) {
+    curVoiceId.value = voices.value.length ? voices.value[0].id : null
+  }
+}
+
+/** @removed 的第二参表示"刚删掉的正是当前选中"，此时保持未选择 */
+function handleRemovedVoice(id, keepEmpty) {
+  reloadVoices(keepEmpty)
+}
+
+const photoRef = useTemplateRef('photo-ref')
+const nameRef = useTemplateRef('name-ref')
+const voiceRef = useTemplateRef('voice-ref')
+const profileRef = useTemplateRef('profile-ref')
+const backgroundImageRef = useTemplateRef('background-image-ref')
+const errorMessage = ref('')
 
 onMounted(async () => {
   try {
@@ -29,19 +52,16 @@ onMounted(async () => {
     const data = res.data
     if (data.result === 'success') {
       character.value = data.character
-      voices.value = data.voices
-      curVoiceId.value = data.character.voice_id
+      voices.value = data.voices || []
+      curVoiceId.value = data.character.voice_id || (voices.value[0]?.id ?? null)
+    } else {
+      // 加载失败要给出提示，否则页面因 v-if="character" 直接空白
+      errorMessage.value = data.result || '角色信息加载失败'
     }
   } catch (err) {
+    errorMessage.value = '角色信息加载失败，请稍后重试'
   }
 })
-
-const photoRef = useTemplateRef('photo-ref')
-const nameRef = useTemplateRef('name-ref')
-const voiceRef = useTemplateRef('voice-ref')
-const profileRef = useTemplateRef('profile-ref')
-const backgroundImageRef = useTemplateRef('background-image-ref')
-const errorMessage = ref('')
 
 async function handleUpdate() {
   const photo = photoRef.value.myPhoto
@@ -96,13 +116,20 @@ async function handleUpdate() {
 </script>
 
 <template>
-  <div v-if="character" class="flex justify-center">
+  <!-- 加载失败时给出提示，而不是整页空白 -->
+  <div v-if="!character" class="flex justify-center mt-24">
+    <div class="alert alert-error max-w-md">
+      <span>{{ errorMessage || '角色信息加载中…' }}</span>
+    </div>
+  </div>
+
+  <div v-else class="flex justify-center">
     <div class="card w-120 bg-base-200 shadow-sm mt-16">
       <div class="card-body">
         <h3 class="text-lg font-bold my-4">更新角色</h3>
         <Photo ref="photo-ref" :photo="character.photo" />
         <Name ref="name-ref" :name="character.name" />
-        <Voice ref="voice-ref" :voices="voices" :curVoiceId="curVoiceId" />
+        <Voice ref="voice-ref" :voices="voices" :curVoiceId="curVoiceId" @removed="handleRemovedVoice" />
         <Profile ref="profile-ref" :profile="character.profile" />
         <BackgroundImage ref="background-image-ref" :backgroundImage="character.background_image" />
 

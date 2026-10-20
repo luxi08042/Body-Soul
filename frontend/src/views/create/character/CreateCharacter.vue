@@ -9,6 +9,8 @@ import api from "@/js/http/api.js";
 import {useRouter} from "vue-router";
 import {useUserStore} from "@/stores/user.js";
 import Voice from "@/views/create/character/components/Voice.vue";
+import {fetchVoices} from "@/js/api/character.js";
+import VoiceRecorder from "@/views/create/character/components/voicerecorder/VoiceRecorder.vue";
 
 const user = useUserStore()
 const router = useRouter()
@@ -23,18 +25,31 @@ const errorMessage = ref('')
 const voices = ref([])
 const curVoiceId = ref(null)
 
-onMounted(async () => {
-  try {
-    const res = await api.get('/api/create/character/voice/get_list/', {})
-    const data = res.data
-    if (data.result === 'success') {
-      voices.value = data.voices
-      curVoiceId.value = data.voices[0].id
-    }
-  } catch (err) {
-    console.error(err)
+/** 拉取音色列表；selectId 传入时自动选中该音色 */
+async function loadVoices(selectId = null, keepEmpty = false) {
+  voices.value = await fetchVoices()
+  if (selectId) {
+    curVoiceId.value = selectId
+  } else if (keepEmpty) {
+    // 刚删掉了正在使用的音色，保持未选择状态
+    curVoiceId.value = null
+  } else if (!voices.value.find(v => String(v.id) === String(curVoiceId.value))) {
+    // 当前选中的音色可能已被删除，回退到第一个
+    curVoiceId.value = voices.value.length ? voices.value[0].id : null
   }
-})
+}
+
+/** 音色被删除后刷新列表；keepEmpty 为 true 时保持"未选择" */
+function handleRemovedVoice(id, keepEmpty) {
+  loadVoices(null, keepEmpty)
+}
+
+onMounted(() => loadVoices())
+
+async function handleClonedVoice(voice) {
+  // 复刻成功后刷新音色列表并自动选中新音色
+  await loadVoices(voice.id)
+}
 
 async function handleCreate() {
   const photo = photoRef.value.myPhoto
@@ -88,7 +103,8 @@ async function handleCreate() {
         <h3 class="text-lg font-bold my-4">创建角色</h3>
         <Photo ref="photo-ref" />
         <Name ref="name-ref" />
-        <Voice ref="voice-ref" :voices="voices" :curVoiceId="curVoiceId" />
+        <Voice ref="voice-ref" :voices="voices" :curVoiceId="curVoiceId" @removed="handleRemovedVoice" />
+        <VoiceRecorder @cloned="handleClonedVoice" />
         <Profile ref="profile-ref" />
         <BackgroundImage ref="background-image-ref" />
 

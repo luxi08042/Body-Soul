@@ -24,7 +24,7 @@ class RefreshTokenView(APIView):
                     value=str(refresh),
                     httponly=True,
                     samesite='Lax',
-                    secure=True,
+                    secure=settings.REFRESH_TOKEN_COOKIE_SECURE,
                     max_age=86400 * 7,
                 )
                 return response

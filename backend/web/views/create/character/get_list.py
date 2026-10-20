@@ -9,8 +9,17 @@ from web.models.user import UserProfile
 class GetListCharacterView(APIView):
     def get(self, request):
         try:
-            items_count = int(request.query_params.get('items_count'))
-            user_id = int(request.query_params.get('user_id'))
+            items_count = int(request.query_params.get('items_count') or 0)
+
+            # 不传 user_id 时默认查当前登录用户自己的角色
+            user_id_param = request.query_params.get('user_id')
+            if user_id_param:
+                user_id = int(user_id_param)
+            else:
+                if not request.user.is_authenticated:
+                    return Response({'result': '请先登录'})
+                user_id = request.user.id
+
             user = User.objects.get(id=user_id)
             user_profile = UserProfile.objects.get(user=user)
             characters_raw = Character.objects.filter(
@@ -25,6 +34,8 @@ class GetListCharacterView(APIView):
                     'profile': character.profile,
                     'photo': character.photo.url,
                     'background_image': character.background_image.url,
+                    # 关联角色时前端要显示音色
+                    'voice': character.voice.name if character.voice else '',
                     'author': {
                         'user_id': author.user_id,
                         'username': author.user.username,
@@ -40,6 +51,14 @@ class GetListCharacterView(APIView):
                     'photo': user_profile.photo.url,
                 },
                 'characters': characters,
+            })
+        except User.DoesNotExist:
+            return Response({
+                'result': '用户不存在'
+            })
+        except ValueError:
+            return Response({
+                'result': '请求参数不正确'
             })
         except:
             return Response({

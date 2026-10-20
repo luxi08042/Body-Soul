@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
+
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -28,7 +30,16 @@ SECRET_KEY = 'django-insecure-j6tt1_pel@3_6u(5sx_-+l#@tu3ubnz)!e_%rob$-fofhyq49i
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'app8145.acapp.acwing.com.cn']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'app8145.acapp.acwing.com.cn']
+
+# 本地开发做音色复刻时，需要允许内网穿透工具的临时域名访问。
+# 在 .env 里配置 PUBLIC_BASE_URL 后会自动把它的域名加进白名单。
+public_base = os.getenv('PUBLIC_BASE_URL', '').strip()
+if public_base:
+    from urllib.parse import urlparse
+    _host = urlparse(public_base).hostname
+    if _host:
+        ALLOWED_HOSTS.append(_host)
 
 
 # Application definition
@@ -159,10 +170,17 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
+# refresh_token cookie 的 secure 标记。
+# 置 True 时浏览器只会在 https 下发送该 cookie，本地 http 调试会导致
+# 刷新令牌取不到、进而所有需要登录的接口返回 401，所以默认关闭。
+REFRESH_TOKEN_COOKIE_SECURE = False
+
 # 配置跨域
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    # 浏览器把 localhost 与 127.0.0.1 视为不同来源，两个都要允许
+    "http://127.0.0.1:5173",
 ]
 

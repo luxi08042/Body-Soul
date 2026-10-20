@@ -1,10 +1,20 @@
 from django.urls import path, re_path
 
+from web.views.blog.create_blog import CreateBlogView
+from web.views.blog.get_blog_detail import GetBlogDetailView
+from web.views.blog.get_my_list import GetMyListView
+from web.views.blog.remove_blog import RemoveBlogView
+from web.views.blog.update_blog import UpdateBlogView
+from web.views.blog.get_all_blog import GetAllBlogsView
+from web.views.blog.get_user_list import GetUserBlogListView
+from web.views.blog.upload_image import BlogImageUploadView
 from web.views.create.character.create import CreateCharacterView
 from web.views.create.character.get_list import GetListCharacterView
 from web.views.create.character.get_single import GetSingleCharacterView
 from web.views.create.character.remove import RemoveCharacterView
 from web.views.create.character.update import UpdateCharacterView
+from web.views.create.character.voice.clone_voice.clone_voice import CloneVoiceView
+from web.views.create.character.voice.delete_voice_view import DeleteVoiceView
 from web.views.create.character.voice.get_list import GetVoiceList
 from web.views.friend.get_list import GetListFriendView
 from web.views.friend.get_or_create import GetOrCreateFriendView
@@ -14,6 +24,11 @@ from web.views.friend.message.get_history import GetHistoryView
 from web.views.friend.remove import RemoveFriendView
 from web.views.homepage.index import HomepageIndexView
 from web.views.index import index
+from web.views.multi_agent import (
+    MultiAgentMessageView,
+    MultiAgentRoomDetailView,
+    MultiAgentRoomListView,
+)
 from web.views.user.account.get_user_info import GetUserInfoView
 from web.views.user.account.login import LoginView
 from web.views.user.account.logout import LogoutView
@@ -35,6 +50,8 @@ urlpatterns = [
     path('api/create/character/get_single/', GetSingleCharacterView.as_view()),
     path('api/create/character/get_list/', GetListCharacterView.as_view()),
     path('api/create/character/voice/get_list/', GetVoiceList.as_view()),
+    path('api/create/character/voice/delete/', DeleteVoiceView.as_view()),
+    path('api/create/character/voice/clone_voice/', CloneVoiceView.as_view()),
 
     path('api/homepage/index/', HomepageIndexView.as_view()),
 
@@ -44,6 +61,21 @@ urlpatterns = [
     path('api/friend/message/chat/', MessageChatView.as_view()),
     path('api/friend/message/get_history/', GetHistoryView.as_view()),
     path('api/friend/message/asr/asr/', ASRView.as_view()),
+
+    # 博客系统模块
+    path('api/blog/create/', CreateBlogView.as_view()),
+    path('api/blog/upload-image/', BlogImageUploadView.as_view()),
+    path('api/blog/my_list/', GetMyListView.as_view()),
+    path('api/blog/update/', UpdateBlogView.as_view()),
+    path('api/blog/remove/', RemoveBlogView.as_view()),
+    path('api/blog/list/', GetAllBlogsView.as_view()),
+    path('api/blog/user_list/', GetUserBlogListView.as_view()),
+    path('api/blog/detail/<int:blog_id>/', GetBlogDetailView.as_view()),
+
+    # 多智能体聊天室
+    path('api/multi-agent/rooms/', MultiAgentRoomListView.as_view()),
+    path('api/multi-agent/rooms/<int:room_id>/', MultiAgentRoomDetailView.as_view()),
+    path('api/multi-agent/rooms/<int:room_id>/messages/', MultiAgentMessageView.as_view()),
 
     path('', index),
 

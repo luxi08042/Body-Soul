@@ -31,7 +31,9 @@ class Character(models.Model):
     author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     photo = models.ImageField(upload_to=photo_upload_to)
-    voice = models.ForeignKey(Voice, default=None, on_delete=models.CASCADE, blank=True, null=True)
+    # 用 SET_NULL 而非 CASCADE：删除音色时只让角色变成「无音色」，
+    # 不会连带删掉用户创建的角色
+    voice = models.ForeignKey(Voice, default=None, on_delete=models.SET_NULL, blank=True, null=True)
     profile = models.TextField(max_length=100000)
     background_image = models.ImageField(upload_to=background_image_upload_to)
     create_time = models.DateTimeField(default=now)

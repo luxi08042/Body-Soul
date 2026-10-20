@@ -4,6 +4,8 @@ import HomepageIcon from "@/components/navbar/icons/HomepageIcon.vue";
 import FriendIcon from "@/components/navbar/icons/FriendIcon.vue";
 import CreateIcon from "@/components/navbar/icons/CreateIcon.vue";
 import SearchIcon from "@/components/navbar/icons/SearchIcon.vue";
+import BlogListIcon from "@/views/blog/icon/BlogListIcon.vue";
+import AgentChatIcon from "@/components/navbar/icons/AgentChatIcon.vue";
 import {useUserStore} from "@/stores/user.js";
 import UserMenu from "@/components/navbar/UserMenu.vue";
 import {ref, watch} from "vue";
@@ -37,7 +39,7 @@ function handleSearch() {
           <label for="my-drawer-4" aria-label="open sidebar" class="btn btn-square btn-ghost">
             <MenuIcon />
           </label>
-          <div class="px-2 font-bold text-xl">AIFriends</div>
+          <div class="px-2 font-bold text-xl">SOUL</div>
         </div>
         <div class="navbar-center w-4/5 max-w-180 flex justify-center">
           <form @submit.prevent="handleSearch" class="join w-4/5 flex justify-center">
@@ -82,6 +84,18 @@ function handleSearch() {
             <RouterLink :to="{name: 'create-index'}" active-class="menu-focus" class="is-drawer-close:tooltip is-drawer-close:tooltip-right py-3" data-tip="创作">
               <CreateIcon />
               <span class="is-drawer-close:hidden text-base ml-2 whitespace-nowrap">创作</span>
+            </RouterLink>
+          </li>
+          <li>
+            <RouterLink :to="{name: 'blog-list'}" active-class="menu-focus" class="is-drawer-close:tooltip is-drawer-close:tooltip-right py-3" data-tip="博客">
+              <BlogListIcon />
+              <span class="is-drawer-close:hidden text-base ml-2 whitespace-nowrap">博客</span>
+            </RouterLink>
+          </li>
+          <li>
+            <RouterLink :to="{name: 'multi-agent-index'}" active-class="menu-focus" class="is-drawer-close:tooltip is-drawer-close:tooltip-right py-3" data-tip="多智能体">
+              <AgentChatIcon />
+              <span class="is-drawer-close:hidden text-base ml-2 whitespace-nowrap">多智能体</span>
             </RouterLink>
           </li>
         </ul>
